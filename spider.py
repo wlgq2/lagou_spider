@@ -48,22 +48,26 @@ class Spider:
             rst = re.search(r'<span class="span totalNum">\d',html.text)
         return  int(rst.group()[28:])
 
-    def __match(self,workMsg):
+    def __match(self,file,workMsg):
         salary = workMsg['salary']
         salarys = salary.split('-')
         low = float(salarys[0].replace('k','').replace('K',''))
         high = float(salarys[1].replace('k','').replace('K',''))
         if(low>self.__lowSalaryMin and high > self.__highSalaryMin and high < self.__highSalaryMax):
-            print workMsg['positionName'] +':\t----'+ workMsg['companyShortName'] + workMsg['salary'] + workMsg['financeStage'] + workMsg['workYear']
+            file.addSaveText(workMsg['positionName'] +':\t----'+ workMsg['companyShortName'] + workMsg['salary'] + workMsg['financeStage'] + workMsg['workYear'])
+            file.addSaveText('https://www.lagou.com/jobs/'+str(workMsg['positionId'])+'.html')
+            file.addSaveText('\n')
 
     def analyse(self):
         pageCount = self.__getPage()
+        messageFile = File("work.txt")
+        messageFile.startAddText()
+
         for i in range(1,pageCount+1):
-            #print '\n*****************************第'+str(i)+'页*********************************\n'
+            print '正在分析第'+str(i)+'页/总页数：'+str(pageCount)
             url = 'http://www.lagou.com/jobs/positionAjax.json?city='+self.city+'&first='+'true'+'&kd='+self.search+'&pn='+str(i)
             html = requests.get(url,headers =self.headers)
             html.encoding = 'utf-8'
-            htmlFile = File("test.html")
             data = json.loads(html.text)
             for workMsg in data['content']['positionResult']['result'] :
-                self.__match(workMsg)
+                self.__match(messageFile,workMsg)
