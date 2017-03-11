@@ -11,6 +11,7 @@ class Main(object):
         reload(sys)
         sys.setdefaultencoding('utf8')
         spider = Spider('python','杭州')
+        spider.setSalay(5.9,16,10.9,31.0)
         spider.analyse()
 
 Main.main()
