@@ -79,10 +79,26 @@ class Spider:
                 return
 
         salary = workMsg['salary']
-        salarys = salary.split('-')
-        low = float(salarys[0].replace('k','').replace('K',''))
-        high = float(salarys[1].replace('k','').replace('K',''))
-        if(low>self.__lowSalaryMin and high > self.__highSalaryMin and high < self.__highSalaryMax):
+
+        low =0
+        high =0
+        if '-' in salary:
+            salarys = salary.split('-')
+            low = float(salarys[0].replace('k','').replace('K',''))
+            high = float(salarys[1].replace('k','').replace('K',''))
+        elif 'K' in salary:
+            salarys = salary.split('K')
+            low = (self.__lowSalaryMin + self.__lowSalaryMax)/2
+            high = float(salarys[0])
+        else:
+            salarys = salary.split('k')
+            low = (self.__lowSalaryMin + self.__lowSalaryMax)/2
+            high = float(salarys[0])
+
+
+
+
+        if(low>self.__lowSalaryMin and high > self.__highSalaryMin and high < self.__highSalaryMax and low<self.__lowSalaryMax):
             url = 'https://www.lagou.com/jobs/'+str(workMsg['positionId'])+'.html'
             page = requests.get(url,headers =self.headers)
             contentList = re.findall('<p>.*</p>',page.text)
