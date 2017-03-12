@@ -3,6 +3,7 @@
 import re,json
 import requests
 from file import File
+from lxml import html
 
 class Spider:
     headers = {
@@ -16,6 +17,15 @@ class Spider:
     __lowSalaryMax = 0.0
     __highSalaryMin = 0.0
     __highSalaryMax = 0.0
+
+    containTextList = []
+    shieldCompanyList = []
+
+    def clearShieldCompany(self):
+        self.shieldCompanyList = []
+
+    def addShieldCompany(self,company):
+        self.shieldCompanyList.append(company)
 
     def setLowSalaryMin(self,value):
         self.__lowSalaryMin = value
@@ -48,15 +58,31 @@ class Spider:
             rst = re.search(r'<span class="span totalNum">\d',html.text)
         return  int(rst.group()[28:])
 
+    def __matchText(self,content):
+        if len(self.containTextList) == 0:
+            return True
+
     def __match(self,file,workMsg):
+        thisCompany = workMsg['companyShortName']
+        for company in self.shieldCompanyList:
+            if  company in  thisCompany:
+                return
+
         salary = workMsg['salary']
         salarys = salary.split('-')
         low = float(salarys[0].replace('k','').replace('K',''))
         high = float(salarys[1].replace('k','').replace('K',''))
         if(low>self.__lowSalaryMin and high > self.__highSalaryMin and high < self.__highSalaryMax):
-            file.addSaveText(workMsg['positionName'] +':\t----'+ workMsg['companyShortName'] + workMsg['salary'] + workMsg['financeStage'] + workMsg['workYear'])
-            file.addSaveText('https://www.lagou.com/jobs/'+str(workMsg['positionId'])+'.html')
-            file.addSaveText('\n')
+            url = 'https://www.lagou.com/jobs/'+str(workMsg['positionId'])+'.html'
+            page = requests.get(url,headers =self.headers)
+            contentList = re.findall('<p>.*</p>',page.text)
+            for content in contentList:
+                if self.__matchText(content):
+                    file.addSaveText(workMsg['positionName'] +':\t----'+ workMsg['companyShortName'] + workMsg['salary'] + workMsg['financeStage'] + workMsg['workYear'])
+                    file.addSaveText('https://www.lagou.com/jobs/'+str(workMsg['positionId'])+'.html')
+                    file.addSaveText('\n')
+                    return 
+
 
     def analyse(self):
         pageCount = self.__getPage()
@@ -66,8 +92,8 @@ class Spider:
         for i in range(1,pageCount+1):
             print '正在分析第'+str(i)+'页/总页数：'+str(pageCount)
             url = 'http://www.lagou.com/jobs/positionAjax.json?city='+self.city+'&first='+'true'+'&kd='+self.search+'&pn='+str(i)
-            html = requests.get(url,headers =self.headers)
-            html.encoding = 'utf-8'
-            data = json.loads(html.text)
+            page = requests.get(url,headers =self.headers)
+            page.encoding = 'utf-8'
+            data = json.loads(page.text)
             for workMsg in data['content']['positionResult']['result'] :
                 self.__match(messageFile,workMsg)

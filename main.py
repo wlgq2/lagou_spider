@@ -1,7 +1,6 @@
 # coding=utf-8
 
 from spider import Spider
-from file import File
 
 import sys
 
@@ -12,6 +11,8 @@ class Main(object):
         sys.setdefaultencoding('utf8')
         spider = Spider('python','杭州')
         spider.setSalay(5.9,16,10.9,31.0)
+        spider.addShieldCompany('畅唐网络')
+        spider.addShieldCompany('中国亿教亿学网')
         spider.analyse()
 
 Main.main()
