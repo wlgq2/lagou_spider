@@ -21,6 +21,12 @@ class Spider:
     containTextList = []
     shieldCompanyList = []
 
+    def clearContainText(self):
+        self.containTextList = []
+
+    def addContainText(self,text):
+        self.containTextList.append(text)
+
     def clearShieldCompany(self):
         self.shieldCompanyList = []
 
@@ -61,6 +67,10 @@ class Spider:
     def __matchText(self,content):
         if len(self.containTextList) == 0:
             return True
+        for text in self.containTextList:
+            if text in  content :
+                return True
+        return False
 
     def __match(self,file,workMsg):
         thisCompany = workMsg['companyShortName']
@@ -76,12 +86,19 @@ class Spider:
             url = 'https://www.lagou.com/jobs/'+str(workMsg['positionId'])+'.html'
             page = requests.get(url,headers =self.headers)
             contentList = re.findall('<p>.*</p>',page.text)
+            message = workMsg['positionName'] +':\t----'+ workMsg['companyShortName'] + workMsg['salary'] + workMsg['financeStage'] + workMsg['workYear']
+            if self.__matchText(message):
+                file.addSaveText(message)
+                file.addSaveText('https://www.lagou.com/jobs/'+str(workMsg['positionId'])+'.html')
+                file.addSaveText('\n')
+                return
+
             for content in contentList:
                 if self.__matchText(content):
-                    file.addSaveText(workMsg['positionName'] +':\t----'+ workMsg['companyShortName'] + workMsg['salary'] + workMsg['financeStage'] + workMsg['workYear'])
+                    file.addSaveText(message)
                     file.addSaveText('https://www.lagou.com/jobs/'+str(workMsg['positionId'])+'.html')
                     file.addSaveText('\n')
-                    return 
+                    return
 
 
     def analyse(self):

@@ -13,6 +13,9 @@ class Main(object):
         spider.setSalay(5.9,16,10.9,31.0)
         spider.addShieldCompany('畅唐网络')
         spider.addShieldCompany('中国亿教亿学网')
+        spider.addContainText('C++')
+        spider.addContainText('c++')
+        #spider.addContainText('爬虫')
         spider.analyse()
 
 Main.main()
